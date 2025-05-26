@@ -1,3 +1,11 @@
+/*!
+@file ObjectAllocator.h
+@author Donghyeon Jo (donghyeon.jo)
+@assignment ObjectAllocator
+@course cs280 Spring
+@date May 26, 2025
+*//*______________________________________________________________________*/
+
 //---------------------------------------------------------------------------
 #ifndef OBJECTALLOCATORH
 #define OBJECTALLOCATORH
@@ -286,22 +294,30 @@ class ObjectAllocator
     GenericObject *FreeList_; //!< the beginning of the list of objects
     
     // Lots of other private stuff... 
-    OAConfig  config_;
-    OAStats   stats_;
-    unsigned inter_block_size_;
+    
+    // For object_list_ (UseCPPMemManager_ = true)
+    struct ObjectList
+    {
+      ObjectList *Next;         //!< The next object in the list
+      unsigned char *Object;    //!< Allocated object
+    };
+    
+    ObjectList *object_list_;   //!< For Use new/delete directly (UseCPPMemManager_ = true)
+    OAConfig  config_;          //!< The configurtion
+    OAStats   stats_;           //!< The stats
+    unsigned left_offset_;      //!< Bytes from the start of the page to the address of the first object
+    unsigned inter_block_size_; //!< Size of one 'inter block'
 
     // Helper methods
-    bool validate_object(const void *object) const;
-    bool is_freed(const void *object) const;
-    bool is_corrupted(const void *object) const;
-    GenericObject *find_previous(bool is_page_list, const GenericObject *elem) const;
+    bool validate_object(const GenericObject *object) const;    // Checks if the given object pointer is a valid address
+    bool is_freed(const GenericObject *object) const;           // Checks if the given object is in the FreeList of ObjectAllocator
+    bool is_corrupted(const GenericObject *object) const;       // Checks if the pad of the block the object belongs to is corrupted
 
-    void push_front(bool is_page_list, GenericObject *elem);
-    void pop_front(bool is_page_list);
-    void remove_next(GenericObject *previous);
-    void allocate_new_page();
-    void set_header(GenericObject *object, const char *label);
-    void reset_header(GenericObject *object);
+    void push_front(bool is_page_list, GenericObject *object);  // Adds a given object to the PageList/FreeList of ObjectAllocator
+    void pop_front(bool is_page_list);                          // Remove the first object from PageList/FreeList
+    void allocate_new_page();                                   // Allocate a new page
+    void set_header(GenericObject *object, const char *label);  // Sets the header that matches the configuration of the block to which the given object belongs (used when allocating)
+    void reset_header(GenericObject *object);                   // Resets the header that matches the configuration of the block to which the given object belongs (used when Freeing)
 };
 
 #endif
