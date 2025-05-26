@@ -288,9 +288,20 @@ class ObjectAllocator
     // Lots of other private stuff... 
     OAConfig  config_;
     OAStats   stats_;
+    unsigned inter_block_size_;
 
-    //void ResetHeader(char *address);
-    void AllocateNewPage();
+    // Helper methods
+    bool validate_object(const void *object) const;
+    bool is_freed(const void *object) const;
+    bool is_corrupted(const void *object) const;
+    GenericObject *find_previous(bool is_page_list, const GenericObject *elem) const;
+
+    void push_front(bool is_page_list, GenericObject *elem);
+    void pop_front(bool is_page_list);
+    void remove_next(GenericObject *previous);
+    void allocate_new_page();
+    void set_header(GenericObject *object, const char *label);
+    void reset_header(GenericObject *object);
 };
 
 #endif
